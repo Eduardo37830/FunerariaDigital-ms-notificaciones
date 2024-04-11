@@ -21,8 +21,6 @@ def home():
 def sms():
     destination = request.form['destination']
     message = request.form['message']
-    print(destination)
-    print(message)
     # Create an SNS client
     client = boto3.client(
         "sns",
@@ -41,9 +39,14 @@ def sms():
 # based on the code above, build the email api method using AWS SES
 @app.route("/email", methods=['POST'])
 def email():
-    destination = request.form['destination']
+    email = request.form['email']
+    destinatary = request.form['destinatary']
     message = request.form['message']
     subject = request.form['subject']
+
+    cuerpo_html = cargar_y_personalizar_plantilla(destinatary, message)
+
+
     # Create an SES client
     client = boto3.client(
         "ses",
@@ -53,26 +56,34 @@ def email():
     )
     # send the email message using the client
     response = client.send_email(
-        Destination={
-            'ToAddresses': [
-                destination,
-            ],
-        },
-        Message={
-            'Body': {
-                'Text': {
+            Destination={'ToAddresses': [email]},
+            Message={
+                'Body': {
+                    'Html': {  # Asegúrate de usar 'Html' en lugar de 'Text'
+                        'Charset': "UTF-8",
+                        'Data': cuerpo_html,
+                    },
+                },
+                'Subject': {
                     'Charset': "UTF-8",
-                    'Data': message,
+                    'Data': subject,
                 },
             },
-            'Subject': {
-                'Charset': "UTF-8",
-                'Data': subject,
-            },
-        },
-        Source="eduardo.villamil37830@ucaldas.edu.co"
-    )
+            Source="eduardo.villamil37830@ucaldas.edu.co"  # Tu correo verificado en SES
+        )
     return response
+
+
+def cargar_y_personalizar_plantilla(nombre_destinatario, mensaje):
+    """Carga la plantilla HTML y reemplaza los marcadores de posición con datos reales."""
+    with open('plantilla_email.html', 'r', encoding='utf-8') as archivo:
+        plantilla = archivo.read()
+    
+    # Reemplazar los marcadores de posición con los datos reales
+    plantilla_personalizada = plantilla.replace("{{nombre_destinatario}}", nombre_destinatario)
+    plantilla_personalizada = plantilla_personalizada.replace("{{mensaje}}", mensaje)
+    
+    return plantilla_personalizada
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
