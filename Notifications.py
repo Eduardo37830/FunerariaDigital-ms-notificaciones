@@ -1,6 +1,14 @@
 from flask import Flask, request
 import os
 import boto3
+from dotenv import load_dotenv
+
+# Carga las variables de entorno desde el archivo .env (pip install python-dotenv)
+load_dotenv()
+
+# Ahora podemos acceder a las variables de entorno usando os.getenv
+access_key = os.getenv('ACCESS_kEY')
+secret_access_key = os.getenv('SECRET_ACCESS_KEY')
 
 app = Flask(__name__)
 
@@ -18,8 +26,8 @@ def sms():
     # Create an SNS client
     client = boto3.client(
         "sns",
-        aws_access_key_id="ACCESS_KEY",
-        aws_secret_access_key="SECRET_ACCESS_KEY",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_access_key,
         region_name="us-east-1"
     )
 
@@ -39,8 +47,8 @@ def email():
     # Create an SES client
     client = boto3.client(
         "ses",
-        aws_access_key_id="ACCESS_KEY",
-        aws_secret_access_key="SECRET_ACCESS_KEY",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_access_key,
         region_name="us-east-1"
     )
     # send the email message using the client
@@ -68,4 +76,3 @@ def email():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
