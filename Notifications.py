@@ -21,7 +21,11 @@ def home():
 def sms():
     destination = request.form['destination']
     message = request.form['message']
-    # Create an SNS client
+
+    # Carga y personaliza la plantilla del mensaje SMS
+    mensaje_personalizado = cargar_y_personalizar_plantilla_sms(destination, message)
+
+    # Crea un cliente SNS
     client = boto3.client(
         "sns",
         aws_access_key_id=access_key,
@@ -29,11 +33,12 @@ def sms():
         region_name="us-east-1"
     )
 
-    # Send your sms message.
+    # Envía el mensaje SMS
     client.publish(
         PhoneNumber=destination,
-        Message=message
+        Message=mensaje_personalizado
     )
+
     return "OK"
 
 # based on the code above, build the email api method using AWS SES
@@ -84,6 +89,13 @@ def cargar_y_personalizar_plantilla(nombre_destinatario, mensaje):
     plantilla_personalizada = plantilla_personalizada.replace("{{mensaje}}", mensaje)
     
     return plantilla_personalizada
+
+def cargar_y_personalizar_plantilla_sms(destinatario, mensaje):
+    """Crea un mensaje personalizado para enviar por SMS."""
+    # Puedes personalizar el mensaje como desees, aquí simplemente se concatena el nombre del destinatario con el mensaje.
+    mensaje_personalizado = f"Hola {destinatario}, {mensaje}. \n Muchas gracias por usar nuestro servicio."
+    
+    return mensaje_personalizado
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
