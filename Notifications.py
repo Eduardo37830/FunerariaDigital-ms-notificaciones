@@ -17,7 +17,7 @@ def home():
     return "Hola, soy Flask"
 
 
-""" @app.route("/sms", methods=['POST'])
+"""@app.route("/sms", methods=['POST'])
 def sms():
     destination = request.form['destination']
     message = request.form['message']
@@ -39,36 +39,37 @@ def sms():
         Message=mensaje_personalizado
     )
 
-    return client
- """
+    return jsonify({"message": "SMS enviado con éxito"})"""
+ 
 
 @app.route("/sms", methods=['POST'])
 def sms():
-    # Asegurarse de que la solicitud contiene datos JSON
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
+    data = request.json  # Obtiene los datos de la solicitud en formato JSON
+    print(data)
+    destination = data.get('destination')
+    message = data.get('message')
 
-    # Obtener datos JSON del cuerpo de la solicitud
-    data = request.get_json()
+    if destination is None or message is None:
+        return jsonify({"error": "Se requieren campos 'destination' y 'message'"}), 400
 
-    # Extraer campos específicos de datos
-    contenidoMensaje = data.get('contenidoMensaje')
-    numeroDestino = data.get('numeroDestino')
+    # Carga y personaliza la plantilla del mensaje SMS
+    mensaje_personalizado = cargar_y_personalizar_plantilla_sms(destination, message)
 
-    # Validar que los campos necesarios están presentes
-    if not contenidoMensaje or not numeroDestino:
-        return jsonify({"error": "Missing 'message' or 'sender'"}), 400
+    # Crea un cliente SNS
+    client = boto3.client(
+        "sns",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_access_key,
+        region_name="us-east-1"
+    )
 
-    # Procesar el contenido del SMS
-    # (por ejemplo, logearlo, analizarlo, almacenarlo en una base de datos, etc.)
-    print(f"Received SMS from {numeroDestino}: {contenidoMensaje}")
+    # Envía el mensaje SMS
+    client.publish(
+        PhoneNumber=destination,
+        Message=mensaje_personalizado
+    )
 
-    # Enviar una respuesta al cliente
-    response = {
-        "status": "success",
-        "message": "SMS received and processed successfully"
-    }
-    return jsonify(response)
+    return jsonify({"success": "Mensaje SMS enviado exitosamente"}), 200
 
 
 # based on the code above, build the email api method using AWS SES
