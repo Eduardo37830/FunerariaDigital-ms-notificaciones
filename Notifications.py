@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import os
 import boto3
 from dotenv import load_dotenv
@@ -17,7 +17,7 @@ def home():
     return "Hola, soy Flask"
 
 
-@app.route("/sms", methods=['POST'])
+""" @app.route("/sms", methods=['POST'])
 def sms():
     destination = request.form['destination']
     message = request.form['message']
@@ -39,7 +39,37 @@ def sms():
         Message=mensaje_personalizado
     )
 
-    return "OK"
+    return client
+ """
+
+@app.route("/sms", methods=['POST'])
+def sms():
+    # Asegurarse de que la solicitud contiene datos JSON
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    # Obtener datos JSON del cuerpo de la solicitud
+    data = request.get_json()
+
+    # Extraer campos específicos de datos
+    sms_content = data.get('message')
+    sender = data.get('sender')
+
+    # Validar que los campos necesarios están presentes
+    if not sms_content or not sender:
+        return jsonify({"error": "Missing 'message' or 'sender'"}), 400
+
+    # Procesar el contenido del SMS
+    # (por ejemplo, logearlo, analizarlo, almacenarlo en una base de datos, etc.)
+    print(f"Received SMS from {sender}: {sms_content}")
+
+    # Enviar una respuesta al cliente
+    response = {
+        "status": "success",
+        "message": "SMS received and processed successfully"
+    }
+    return jsonify(response)
+
 
 # based on the code above, build the email api method using AWS SES
 @app.route("/email", methods=['POST'])
