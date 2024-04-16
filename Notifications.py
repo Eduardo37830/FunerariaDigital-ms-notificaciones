@@ -52,16 +52,16 @@ def sms():
     data = request.get_json()
 
     # Extraer campos específicos de datos
-    sms_content = data.get('message')
-    sender = data.get('sender')
+    contenidoMensaje = data.get('contenidoMensaje')
+    numeroDestino = data.get('numeroDestino')
 
     # Validar que los campos necesarios están presentes
-    if not sms_content or not sender:
+    if not contenidoMensaje or not numeroDestino:
         return jsonify({"error": "Missing 'message' or 'sender'"}), 400
 
     # Procesar el contenido del SMS
     # (por ejemplo, logearlo, analizarlo, almacenarlo en una base de datos, etc.)
-    print(f"Received SMS from {sender}: {sms_content}")
+    print(f"Received SMS from {numeroDestino}: {contenidoMensaje}")
 
     # Enviar una respuesta al cliente
     response = {
